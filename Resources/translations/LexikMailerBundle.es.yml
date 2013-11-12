@@ -1,0 +1,54 @@
+lexik_mailer:
+    email:
+        id:                       "Id"
+        description:              "Descripción"
+        reference:                "Referencia"
+        bcc:                      "Copia oculta"
+        languages:                "Idiomas"
+        actions:                  "Acciones"
+        list:                     "Lista de emails"
+        action:
+            edit:                 "Actualizar"
+            delete:               "Eliminar"
+
+    new:
+        group_common:             "Opciones generales"
+        group_translation:        "Traducciones"
+        submit:                   "Guardar"
+        group_languages:          "Idiomas"
+        default_lang:             "Idioma por defecto"
+
+    edit:
+        action_delete:            "Eliminar"
+        table:
+            lang:                 "Idioma"
+            subject:              "Asunto"
+            action:               "Acción"
+        lang:                     "Idioma"
+
+    link:
+        new:                      "Nuevo"
+        list:                     "Volver a la lista"
+        preview:                  "Previsualización"
+
+    list:
+        from %from%:              "De: %from%"
+
+    layout:
+        id:                       "Id"
+        description:              "Descripción"
+        reference:                "Referencia"
+        list:                     "Lista de layouts"
+        languages:                "Idiomas"
+        actions:                  "Acciones"
+        action:
+            edit:                 "Actualizar"
+            delete:               "Eliminar"
+
+    translation_delete:
+        confirm:                  "¿Está seguro de que quiere eliminar este idioma?"
+
+    preview:
+        subject:                  "Asunto"
+        from_name:                "Sender"
+        body:                     "Body"
