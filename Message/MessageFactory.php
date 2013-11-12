@@ -4,7 +4,6 @@ namespace Lexik\Bundle\MailerBundle\Message;
 
 use Lexik\Bundle\MailerBundle\Model\EmailInterface;
 use Lexik\Bundle\MailerBundle\Mapping\Driver\Annotation;
-use Lexik\Bundle\MailerBundle\Events\SendListener;
 use Lexik\Bundle\MailerBundle\Exception\NoTranslationException;
 use Lexik\Bundle\MailerBundle\Message\ReferenceNotFoundMessage;
 use Lexik\Bundle\MailerBundle\Message\NoTranslationMessage;
@@ -37,11 +36,6 @@ class MessageFactory
     private $annotationDriver;
 
     /**
-     * @var \Swift_Events_EventDispatcher
-     */
-    private $swiftDispatcher;
-
-    /**
      * @var array
      */
     private $options;
@@ -52,20 +46,18 @@ class MessageFactory
     private $emails;
 
     /**
-     * __construct
+     * Constructor.
      *
-     * @param EntityManager                 $entityManager
-     * @param MessageRenderer               $renderer
-     * @param Annotation                    $driver
-     * @param \Swift_Events_EventDispatcher $dispatcher
-     * @param array                         $defaultOptions
+     * @param EntityManager   $entityManager
+     * @param MessageRenderer $renderer
+     * @param Annotation      $driver
+     * @param array           $defaultOptions
      */
-    public function __construct(EntityManager $entityManager, MessageRenderer $renderer, Annotation $annotationDriver, \Swift_Events_EventDispatcher $swiftDispatcher, $defaultOptions)
+    public function __construct(EntityManager $entityManager, MessageRenderer $renderer, Annotation $annotationDriver, $defaultOptions)
     {
         $this->em = $entityManager;
         $this->renderer = $renderer;
         $this->annotationDriver = $annotationDriver;
-        $this->swiftDispatcher = $swiftDispatcher;
         $this->options = array_merge($this->getDefaultOptions(), $defaultOptions);
         $this->emails = array();
     }
@@ -140,14 +132,14 @@ class MessageFactory
             $this->renderer->loadTemplates($email);
 
             $message = \Swift_Message::newInstance()
-                ->setSubject($this->renderTemplate('subject', $parameters, $email->getReference()))
-                ->setFrom($email->getFromAddress($this->options['admin_email']), $this->renderTemplate('from_name', $parameters, $email->getReference()))
+                ->setSubject($this->renderTemplate('subject', $parameters, $email->getChecksum()))
+                ->setFrom($email->getFromAddress($this->options['admin_email']), $this->renderTemplate('from_name', $parameters, $email->getChecksum()))
                 ->setTo($to)
-                ->setBody($this->renderTemplate('html_content', $parameters, $email->getReference()), 'text/html');
+                ->setBody($this->renderTemplate('html_content', $parameters, $email->getChecksum()), 'text/html');
 
-            $textContent = $this->renderTemplate('text_content', $parameters, $email->getReference());
+            $textContent = $this->renderTemplate('text_content', $parameters, $email->getChecksum());
 
-            if (null !== $textContent || '' !== $textContent) {
+            if (null !== $textContent && '' !== $textContent) {
                 $message->addPart($textContent, 'text/plain');
             }
 
@@ -157,13 +149,18 @@ class MessageFactory
 
         } catch (NoTranslationException $e) {
             $message = new NoTranslationMessage($email->getReference(), $locale);
-            $this->bindExceptionListener($message);
+            $message->setFrom($this->options['admin_email']);
+            $message->setTo($this->options['admin_email']);
+
+        } catch (\Twig_Error_Runtime $e) {
+            $message = new UndefinedVariableMessage($e->getMessage(), $email->getReference());
+            $message->setFrom($this->options['admin_email']);
+            $message->setTo($this->options['admin_email']);
 
         } catch (\Twig_Error $e) {
             $message = new TwigErrorMessage($e->getRawMessage(), $email->getReference());
-
-            $message->setFrom($this->options['admin_email'])
-                ->setTo($this->options['admin_email']);
+            $message->setFrom($this->options['admin_email']);
+            $message->setTo($this->options['admin_email']);
         }
 
         return $message;
@@ -174,23 +171,14 @@ class MessageFactory
      *
      * @param string $view
      * @param array  $parameters
-     * @param string $reference
+     * @param string $checksum
      * @return string
      */
-    protected function renderTemplate($view, array $parameters, $reference)
+    protected function renderTemplate($view, array $parameters, $checksum)
     {
-        $template = '';
+        $view = sprintf('%s_%s', $view, $checksum);
 
-        try {
-            $view = sprintf('%s_%s', $view, md5($reference));
-            $template = $this->renderer->renderTemplate($view, $parameters);
-
-        } catch (\Twig_Error_Runtime $e) {
-            $message = new UndefinedVariableMessage($e->getMessage(), $reference);
-            $this->bindExceptionListener($message);
-        }
-
-        return $template;
+        return $this->renderer->renderTemplate($view, $parameters);
     }
 
     /**
@@ -219,18 +207,5 @@ class MessageFactory
         $message->setTo($this->options['admin_email']);
 
         return $message;
-    }
-
-    /**
-     * Bind an exception message to be sent along the main mail by swift dispatcher
-     *
-     * @param \Swift_Message $message
-     */
-    protected function bindExceptionListener(\Swift_Message $message)
-    {
-        $message->setFrom($this->options['admin_email'])
-            ->setTo($this->options['admin_email']);
-
-        $this->swiftDispatcher->bindEventListener(new SendListener($message));
     }
 }
