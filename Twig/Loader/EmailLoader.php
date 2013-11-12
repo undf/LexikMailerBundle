@@ -4,6 +4,8 @@ namespace Lexik\Bundle\MailerBundle\Twig\Loader;
 
 use Lexik\Bundle\MailerBundle\Model\EmailInterface;
 
+use \Twig_Error_Loader;
+
 /**
  * Custom Email template loader.
  *
@@ -24,10 +26,10 @@ class EmailLoader extends \Twig_Loader_Array
     public function setEmailTemplates(EmailInterface $email)
     {
         if ($email->getLayout()) {
-            $layoutSuffix = md5($email->getLayout()->getReference());
+            $layoutSuffix = $email->getLayout()->getChecksum();
 
             $this->setTemplate(sprintf('layout_%s', $layoutSuffix), $email->getLayoutBody());
-            $this->updateDates[sprintf('layout_%s', $layoutSuffix)] = $email->getLayout()->getUpdatedAt()->format('U');
+            $this->updateDates[sprintf('layout_%s', $layoutSuffix)] = $email->getLayout()->getLastModifiedTimestamp();
 
             $content = strtr('{% extends \'<layout>\' %}{% block content %}<content>{% endblock %}', array(
                 '<layout>'  => sprintf('layout_%s', $layoutSuffix),
@@ -38,7 +40,7 @@ class EmailLoader extends \Twig_Loader_Array
             $content = $email->getBody();
         }
 
-        $emailSuffix = md5($email->getReference());
+        $emailSuffix = $email->getChecksum();
 
         $this->setTemplate(sprintf('html_content_%s', $emailSuffix), $content);
         $this->setTemplate(sprintf('text_content_%s', $emailSuffix), $email->getBodyText());
@@ -46,10 +48,10 @@ class EmailLoader extends \Twig_Loader_Array
         $this->setTemplate(sprintf('from_name_%s', $emailSuffix), $email->getFromName());
 
         // keep updated at to be able to check if the template is fresh
-        $this->updateDates[sprintf('html_content_%s', $emailSuffix)] = $email->getUpdatedAt()->format('U');
-        $this->updateDates[sprintf('text_content_%s', $emailSuffix)] = $email->getUpdatedAt()->format('U');
-        $this->updateDates[sprintf('subject_%s', $emailSuffix)] = $email->getUpdatedAt()->format('U');
-        $this->updateDates[sprintf('from_name_%s', $emailSuffix)] = $email->getUpdatedAt()->format('U');
+        $this->updateDates[sprintf('html_content_%s', $emailSuffix)] = $email->getLastModifiedTimestamp();
+        $this->updateDates[sprintf('text_content_%s', $emailSuffix)] = $email->getLastModifiedTimestamp();
+        $this->updateDates[sprintf('subject_%s', $emailSuffix)] = $email->getLastModifiedTimestamp();
+        $this->updateDates[sprintf('from_name_%s', $emailSuffix)] = $email->getLastModifiedTimestamp();
     }
 
     /**
