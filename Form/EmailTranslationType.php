@@ -5,6 +5,7 @@ namespace Lexik\Bundle\MailerBundle\Form;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\Intl\Intl;
 
 /**
  * @author Laurent Heurtault <l.heurtault@lexik.fr>
@@ -32,6 +33,7 @@ class EmailTranslationType extends AbstractType
         if ($options['with_language']) {
             $builder->add('lang', 'language', array(
                 'preferred_choices' => $options['preferred_languages'],
+                'choices' => Intl::getLanguageBundle()->getLanguageNames($options['locale'])
             ));
         }
     }
@@ -47,6 +49,7 @@ class EmailTranslationType extends AbstractType
             'data_class'          => 'Lexik\Bundle\MailerBundle\Entity\EmailTranslation',
             'with_language'       => true,
             'preferred_languages' => array('en', 'fr', 'es', 'de', 'it', 'pt', 'ja', 'zh'),
+            'locale' => 'en'
         ));
     }
 

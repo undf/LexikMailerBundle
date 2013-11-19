@@ -60,6 +60,7 @@ class EmailController extends ContainerAware
         $form = $this->container->get('form.factory')->create(new EmailType(), $email, array(
             'data_translation' => $translation,
             'edit'             => true,
+            'locale'           => $request->getLocale()
         ));
 
         // Submit form

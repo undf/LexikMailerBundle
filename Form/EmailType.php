@@ -35,6 +35,7 @@ class EmailType extends AbstractType
                 'mapped'        => false,
                 'data'          => $options['data_translation'],
                 'with_language' => $options['edit'],
+                'locale'        => $options['locale']
             ))
         ;
     }
@@ -51,6 +52,7 @@ class EmailType extends AbstractType
             'data_translation'      => null,
             'edit'                  => false,
             'preferred_languages'   => array(),
+            'locale'                => 'en'
         ));
     }
 
