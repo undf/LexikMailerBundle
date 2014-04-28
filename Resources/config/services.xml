@@ -8,6 +8,7 @@
             <parameter key="email_class">%lexik_mailer.email_entity.class%</parameter>
             <parameter key="admin_email">%lexik_mailer.admin_email%</parameter>
             <parameter key="default_locale">%locale%</parameter>
+            <parameter key="allowed_locales">%app_locales%</parameter>
         </parameter>
         <parameter key="lexik_mailer.templating.default_options" type="collection">
             <parameter key="cache">%kernel.cache_dir%/twig</parameter>

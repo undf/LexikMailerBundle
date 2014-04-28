@@ -113,7 +113,7 @@ class MessageFactory
      */
     public function generateMessage(EmailInterface $email, $to, array $parameters = array(), $locale = null)
     {
-        if (null == $locale) {
+        if (null == $locale || !in_array($locale, $this->options['allowed_locales'])) {
             $locale = $this->options['default_locale'];
         }
 
