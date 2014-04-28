@@ -113,6 +113,9 @@ class MessageFactory
      */
     public function generateMessage(EmailInterface $email, $to, array $parameters = array(), $locale = null)
     {
+        if(FALSE !== strpos($locale, '_')) {
+            $locale = stristr($locale, '_', true);
+        }
         if (null == $locale || !in_array($locale, $this->options['allowed_locales'])) {
             $locale = $this->options['default_locale'];
         }
@@ -148,10 +151,6 @@ class MessageFactory
             }
 
         } catch (NoTranslationException $e) {
-            if(FALSE !== strpos($locale, '_')) {
-                return $this->generateMessage($email, $to, $parameters, stristr($locale, '_', true));
-            }
-            
             $message = new NoTranslationMessage($email->getReference(), $locale);
             $message->setFrom($this->options['admin_email']);
             $message->setTo($this->options['admin_email']);
